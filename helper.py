@@ -124,15 +124,13 @@ replacements = {'/':'-', '\\':'-', ':':'-', '*':'', '>':'', '<':'', '?':'', \
                 '|':'', '"':''}
 
 def compose_bookname(title, author, edition, isbn):
-    bookname = title + ' - ' + author + ', ' + edition + ' - ' + isbn
+    bookname = '{} ({}) - {}'.format(title, edition, author)
     if(len(bookname) > MAX_FILENAME_LEN):
-        bookname = title + ' - ' + author.split(',')[0] + ' et al., ' + \
-                    edition + ' - ' + isbn
+        bookname = '{} ({}) - {}'.format(
+            title, edition, author.split(',')[0] + ' et al.')
     if(len(bookname) > MAX_FILENAME_LEN):
-        bookname = title + ' - ' + author.split(',')[0] + ' et al. - ' + isbn
-    if(len(bookname) > MAX_FILENAME_LEN):
-        bookname = title + ' - ' + isbn
-    if(len(bookname) > MAX_FILENAME_LEN):
-        bookname = title[:(MAX_FILENAME_LEN - 20)] + ' - ' + isbn
+        offset = len(bookname) - MAX_FILENAME_LEN
+        bookname = '{} ({}) - {}'.format(
+            title[:-offset], edition, author.split(',')[0] + ' et al.')
     bookname = bookname.encode('ascii', 'ignore').decode('ascii')
     return "".join([replacements.get(c, c) for c in bookname])
