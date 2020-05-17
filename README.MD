@@ -1,11 +1,18 @@
+## Springer has just added the reCAPTCHA step to prevent automatic download from their site. Thus, this package will not perform as expected, you may receive flawed files. 
+
+
+
 ## Python script to download all Springer books released for free during the 2020 COVID-19 quarantine
+![Python package and testrun](https://github.com/alexgand/springer_free_books/workflows/Python%20package%20and%20testrun/badge.svg)
+### Books available
+It used to have 409 english books (it took about 4 hours to complete the download ~ 14 GB, both PDF and EPUB, on my machine), but Springer has since removed some of them from the open access.
 
 ### Usage
-**Note**: If you want just one or two specific books, get the excel file [here](https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/v4) and manually download those or use the script to help you download (see **Download book selectively** sub-section). It took about 4 hours to complete the 409 english books (14 GB, both PDF and EPUB) on my machine.
+**Note**: If you want just one or two specific books, get [the excel file](https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/) and manually download those or use the script to help you download (see **Download book selectively** sub-section).
 
 By default the script stores the books in `./downloads` subfolder according to the subject ("English Package Name" column of the excel file).
 
-#### Download all books (PDF and EPUB)
+#### Download all English books (PDF and EPUB)
 Use the following command to download all PDF and EPUB books to the default download folder `./downloads`
 ```bash
 python3 main.py
@@ -18,6 +25,19 @@ You can download to an absolute path, say `C:/ebooks/springer/`
 ```bash
 python3 main.py -f C:/ebooks/springer/
 ```
+
+To download books in separate chapters (PDF only) 
+```bash
+python3 main.py --dl_chapters
+```
+
+#### Download all German books (PDF and EPUB)
+To download the German books use
+```bash
+python3 main.py --lang de
+```
+This language flag can be combined with any of the above and below mentioned options. If not specified, `--lang en`, i.e. English, is
+the default.
 
 #### Download all books of specific format
 To download all PDF books only, run
@@ -32,7 +52,7 @@ python3 main.py --epub
 #### Download only specific book categories
 You can download selective books by categories. Make sure category name with space(s) is enclosed in double quotation marks,  like so
 ```bash
-python3 main.py -c Enginnering "CoMpuTer sciEnCe"
+python3 main.py -c Engineering "CoMpuTer sciEnCe"
 ```
 The category name is case-insensitive.
 
@@ -74,7 +94,7 @@ The following invalid book categories will be ignored:
 ### Running in a virtual environment (Bash commands):
 ```bash
 python3 -m venv .venv
-. .venv/bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 python3 main.py
 ```
@@ -96,14 +116,14 @@ python main.py
 ```winbatch
 python -m virtualenv .venv
 .venv\Scripts\activate.bat
-pip install -r requirements2x.txt
+pip install -r requirements.txt
 python main.py
 ```
 
-### Source:
-* https://group.springernature.com/gp/group/media/press-releases/freely-accessible-textbook-initiative-for-educators-and-students/17858180?utm_medium=social&utm_content=organic&utm_source=facebook&utm_campaign=SpringerNature_&sf232256230=1
+### Sources:
+* https://group.springernature.com/gp/group/media/press-releases/freely-accessible-textbook-initiative-for-educators-and-students/17858180
 * https://www.springernature.com/gp/librarians/news-events/all-news-articles/industry-news-initiatives/free-access-to-textbooks-for-institutions-affected-by-coronaviru/17855960
-* https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/v4
+* https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/
 
 Thanks Springer!
 
@@ -111,7 +131,7 @@ Thanks Springer!
 
 Considering you cloned the repo in a folder, as:
 ```bash
-cd \home\[user]\workspace`
+cd \home\[user]\workspace
 git clone https://github.com/alexgand/springer_free_books.git
 cd springer_free_books
 mkdir downloads

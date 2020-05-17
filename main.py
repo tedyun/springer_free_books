@@ -1,19 +1,24 @@
 #!/usr/bin/env python
 
 import os
-import requests
 import argparse
 import pandas as pd
 from helper import *
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('-l', '--lang', dest='language',
+    default='en', choices={'en', 'de'}, help='books language to download'
+)
 parser.add_argument('-f', '--folder', help='folder to store downloads')
 parser.add_argument(
     '--pdf', action='store_true', help='download PDF books'
 )
 parser.add_argument(
     '--epub', action='store_true', help='download EPUB books'
+)
+parser.add_argument(
+    '--dl_chapters', action='store_true', help='download chapters individually'
 )
 parser.add_argument(
     '-c','--category', nargs='+', dest='category',
@@ -30,11 +35,28 @@ parser.add_argument(
 args = parser.parse_args()
 folder = create_path(args.folder if args.folder else './downloads')
 
-table_url = 'https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/v4'
-table = 'table_' + table_url.split('/')[-1] + '.xlsx'
+assert args.language in ('en', 'de'), '-l or --language must be "en" or "de"'
+if args.language == 'en':
+    table_url = 'https://resource-cms.springernature.com/springer-cms/rest/v1/content/17858272/data/'
+elif args.language == 'de':
+    table_url = 'https://resource-cms.springernature.com/springer-cms/rest/v1/content/17863240/data/'
+
+table = 'table_' + table_url.split('/')[-1] + '_' + args.language + '.xlsx'
 table_path = os.path.join(folder, table)
 if not os.path.exists(table_path):
-    books = pd.read_excel(table_url)
+    try:
+        books = pd.read_excel(table_url)
+    except (OSError, IOError) as e:
+        if e.__class__.__name__ == 'HTTPError' and e.getcode() == 404:
+            print('Error: {} URL page not found. '.format(table_url) +
+                  'Fix the URL in the Python script, or get someone to help.')
+        else:
+            print(e)
+        exit(-1)
+    # Remove empty entries
+    books['Book Title'].replace('', np.nan, inplace=True)
+    books.dropna(subset=['Book Title'], inplace=True)
+    books.index = range(0, len(books.index))
     # Save table in the download folder
     books.to_excel(table_path)
 else:
@@ -45,10 +67,15 @@ indices = []
 invalid_categories = []
 if not args.pdf and not args.epub:
     args.pdf = args.epub = True
+if args.dl_chapters:
+    dl_chapters = args.pdf = True
+    args.epub = False
+else:
+    dl_chapters = False
 if args.pdf:
-    patches.append({'url':'/content/pdf/', 'ext':'.pdf'})
+    patches.append({'url':'/content/pdf/', 'ext':'.pdf','dl_chapters':dl_chapters})
 if args.epub:
-    patches.append({'url':'/download/epub/', 'ext':'.epub'})
+    patches.append({'url':'/download/epub/', 'ext':'.epub','dl_chapters':dl_chapters})
 if args.book_index != None:
     indices = [
         i - 2 for i in map(int, args.book_index)
@@ -67,7 +94,7 @@ if len(indices) == 0 and (len(invalid_categories) > 0 or args.book_index):
 
 indices = list(set(indices))                            # Remove duplicates
 books = filter_books(books, sorted(indices))
-books.index = [i + 2 for i in books.index.array]        # Recorrect indices
+books.index = [i + 2 for i in books.index]              # Recorrect indices
 print_summary(books, invalid_categories, args)
 download_books(books, folder, patches)
 
